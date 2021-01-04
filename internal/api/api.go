@@ -11,6 +11,9 @@ import (
 
 	"github.com/labstack/echo/v4"
 	zl "github.com/rs/zerolog/log"
+
+	_ "github.com/senayst4745/diamond/docs" // you need to update github.com/rizalgowandy/go-swag-sample with your own project path
+	sw "github.com/swaggo/echo-swagger"
 )
 
 type Context struct {
@@ -28,6 +31,13 @@ type Config struct {
 	Addr string
 }
 
+// @title Diamond And Mine
+// @version 1.0
+// @description This is diamond play.
+
+// @host localhost:7171
+// @BasePath /
+// @schemes http
 func New(ctx context.Context, cfg *Config, s service.Service) (*API, error) {
 	e := echo.New()
 	a := &API{
@@ -51,6 +61,7 @@ func New(ctx context.Context, cfg *Config, s service.Service) (*API, error) {
 	e.GET("/mine", a.getAllMines)
 	e.PUT("/mine", a.addDiamondMine)
 	e.DELETE("/mine", a.emptyMine)
+	e.GET("/swagger/*", sw.WrapHandler)
 	return a, nil
 }
 
@@ -79,8 +90,17 @@ func logger() echo.MiddlewareFunc {
 	}
 }
 
+// healthcheck to check is server alive
+// @Summary Show the status of server.
+// @Description get the status of server.
+// @Accept */*
+// @Produce json
+// @Success 200
+// @Router /health [get]
 func healthcheck(e echo.Context) error {
-	return e.String(http.StatusOK, "ok")
+	return e.JSON(http.StatusOK, struct {
+		Message string
+	}{Message: "OK"})
 }
 
 type mineName struct {
@@ -91,6 +111,14 @@ type mineCount struct {
 	Count int `json:"count"`
 }
 
+// getDiamonds to get random count of diamonds from mine
+// @Summary Get Diamonds from Mine.
+// @Description method to get some diamonds from a mine. If mine is empty, this method delete this mine.
+// @Accept */*
+// @Produce json
+// @Success 200 {object} mineCount
+// @Param body body mineName true "the name of the mine from which we want to extract diamonds"
+// @Router /diamond [post]
 func (a *API) getDiamonds(e echo.Context) error {
 	cc, err := getParentContext(e)
 	if err != nil {
@@ -111,6 +139,12 @@ func (a *API) getDiamonds(e echo.Context) error {
 	return e.JSON(http.StatusOK, res)
 }
 
+// getAllMines Show all mines
+// @Summary Show all mines.
+// @Accept */*
+// @Produce json
+// @Success 200 {object} []repository.Mine "list of all mines"
+// @Router /mine [get]
 func (a *API) getAllMines(e echo.Context) error {
 	cc, err := getParentContext(e)
 	if err != nil {
@@ -125,6 +159,13 @@ func (a *API) getAllMines(e echo.Context) error {
 	return e.JSON(http.StatusOK, m)
 }
 
+// addDiamondMine add new mine
+// @Summary Add new mine.
+// @Accept */*
+// @Produce json
+// @Success 201
+// @Param body body repository.Mine true "new mine model"
+// @Router /mine [post]
 func (a *API) addDiamondMine(e echo.Context) error {
 	cc, err := getParentContext(e)
 	if err != nil {
@@ -140,6 +181,14 @@ func (a *API) addDiamondMine(e echo.Context) error {
 	return e.NoContent(http.StatusCreated)
 }
 
+// emptyMine gets all the diamonds from the mine and closes it
+// @Summary Closes mine.
+// @Description gets all the diamonds from the mine and closes it
+// @Accept */*
+// @Produce json
+// @Success 200 {object} mineCount
+// @Param body body mineName true "the name of the mine to be closed"
+// @Router /mine [delete]
 func (a *API) emptyMine(e echo.Context) error {
 	cc, err := getParentContext(e)
 	if err != nil {

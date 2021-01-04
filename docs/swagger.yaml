@@ -1,0 +1,109 @@
+basePath: /
+definitions:
+  api.mineCount:
+    properties:
+      count:
+        type: integer
+    type: object
+  api.mineName:
+    properties:
+      name:
+        type: string
+    type: object
+  repository.Mine:
+    properties:
+      diamond_count:
+        type: integer
+      name:
+        type: string
+    type: object
+host: localhost:7171
+info:
+  contact: {}
+  description: This is diamond play.
+  title: Diamond And Mine
+  version: "1.0"
+paths:
+  /diamond:
+    post:
+      consumes:
+      - '*/*'
+      description: method to get some diamonds from a mine. If mine is empty, this method delete this mine.
+      parameters:
+      - description: the name of the mine from which we want to extract diamonds
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api.mineName'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.mineCount'
+      summary: Get Diamonds from Mine.
+  /health:
+    get:
+      consumes:
+      - '*/*'
+      description: get the status of server.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+      summary: Show the status of server.
+  /mine:
+    delete:
+      consumes:
+      - '*/*'
+      description: gets all the diamonds from the mine and closes it
+      parameters:
+      - description: the name of the mine to be closed
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api.mineName'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.mineCount'
+      summary: Closes mine.
+    get:
+      consumes:
+      - '*/*'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: list of all mines
+          schema:
+            items:
+              $ref: '#/definitions/repository.Mine'
+            type: array
+      summary: Show all mines.
+    post:
+      consumes:
+      - '*/*'
+      parameters:
+      - description: new mine model
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/repository.Mine'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: ""
+      summary: Add new mine.
+schemes:
+- http
+swagger: "2.0"
